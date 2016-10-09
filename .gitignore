@@ -1,4 +1,9 @@
-.idea
-.gradle
-build
-out
+.idea/
+
+# Build tools
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+build/
+out/
