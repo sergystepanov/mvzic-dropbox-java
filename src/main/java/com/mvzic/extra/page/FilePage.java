@@ -22,6 +22,7 @@ public class FilePage extends Pane {
     }
 
     public void setFiles(final List<String> files) {
+        this.files.clear();
         this.files.addAll(files);
     }
 }

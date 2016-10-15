@@ -12,6 +12,7 @@ repositories {
 
 dependencies {
     compile 'com.dropbox.core:dropbox-core-sdk:2.1.2'
+    compile 'com.google.guava:guava:19.0'
 
     testCompile 'junit:junit:4.12'
 }
