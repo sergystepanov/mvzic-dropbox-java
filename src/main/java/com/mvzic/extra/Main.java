@@ -1,14 +1,17 @@
 package com.mvzic.extra;
 
 import com.dropbox.core.DbxException;
+import com.dropbox.core.v2.files.ListFolderErrorException;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.mvzic.extra.app.AppSettings;
 import com.mvzic.extra.app.Settings;
 import com.mvzic.extra.dropbox.DropboxHandler;
 import com.mvzic.extra.event.FileListLoadedEvent;
+import com.mvzic.extra.event.FileSelectedEvent;
 import com.mvzic.extra.event.MessagedEvent;
 import com.mvzic.extra.event.TokenSetEvent;
+import com.mvzic.extra.file.Path;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.page.FilePage;
 import com.mvzic.extra.page.SettingsPage;
@@ -32,9 +35,12 @@ public class Main extends Application {
     private DropboxHandler dropbox;
     private Pane mainPane;
     private static final EventBus eventBus = new EventBus(Settings.MAIN_BUS);
+    private String rout;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        rout = "";
+
         AppSettings appSettings = new AppSettings();
         String token = appSettings.get(Settings.TOKEN);
 
@@ -54,7 +60,7 @@ public class Main extends Application {
         });
 
         MenuItem reload = new MenuItem(lang.get("menu_reload"));
-        reload.setOnAction(event -> reloadDropboxFiles());
+        reload.setOnAction(event -> reloadDropboxFiles(Path.ROOT));
 
         MenuItem quit = new MenuItem(lang.get("menu_exit"));
         quit.setOnAction(e -> Platform.exit());
@@ -69,7 +75,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, 600, 600);
         primaryStage.setScene(scene);
 
-        mainPane = new FilePage();
+        mainPane = new FilePage(eventBus);
 
         setCenter(root, mainPane);
 
@@ -81,7 +87,7 @@ public class Main extends Application {
         eventBus.register(this);
         eventBus.register(bar);
 
-        reloadDropboxFiles();
+        reloadDropboxFiles(Path.ROOT);
     }
 
     @Subscribe
@@ -90,6 +96,12 @@ public class Main extends Application {
             setFiles(event.getFiles());
             eventBus.post(new MessagedEvent("[dropbox] files have been loaded"));
         });
+    }
+
+    @Subscribe
+    public void listenFileSelect(final FileSelectedEvent event) {
+        eventBus.post(new MessagedEvent("[list] selected: " + event.getFileName()));
+        reloadDropboxFiles(event.getFileName());
     }
 
     @Subscribe
@@ -110,16 +122,34 @@ public class Main extends Application {
             return;
         }
 
+        if (!rout.isEmpty()) {
+            files.add(0, Path.PARENT);
+        }
+
         ((FilePage) mainPane).setFiles(files);
     }
 
-    private void reloadDropboxFiles() {
+    private void reloadDropboxFiles(final String path) {
         new Thread(new Task<Void>() {
             @Override
             public Void call() {
                 try {
-                    Platform.runLater(() -> eventBus.post(new MessagedEvent("[dropbox] file request ...")));
-                    eventBus.post(new FileListLoadedEvent(dropbox.getFiles()));
+                    Platform.runLater(() -> {
+                        if (path != null) {
+                            eventBus.post(new MessagedEvent("[dropbox] open: " + path));
+                        }
+                    });
+
+                    String next = path;
+
+                    if (path.equals(Path.PARENT)) {
+                        next = rout.substring(0, rout.lastIndexOf('/'));
+                    }
+
+                    eventBus.post(new FileListLoadedEvent(dropbox.getFiles(next)));
+                    rout = next;
+                } catch (ListFolderErrorException e) {
+                    Platform.runLater(() -> eventBus.post(new MessagedEvent("[dropbox] was not a folder: " + path)));
                 } catch (DbxException | IOException e) {
                     e.printStackTrace();
                 }

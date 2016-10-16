@@ -11,7 +11,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
 public class SettingsPage extends Pane {
-    public SettingsPage(EventBus eventBus) {
+    public SettingsPage(final EventBus eventBus) {
         GridPane grid = new GridPane();
         grid.setPadding(new Insets(10, 10, 10, 10));
         grid.setVgap(5);

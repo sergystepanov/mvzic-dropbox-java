@@ -23,9 +23,9 @@ public class DropboxHandler {
         client = new DbxClientV2(config, accessToken);
     }
 
-    public List<String> getFiles() throws DbxException, IOException {
+    public List<String> getFiles(final String path) throws DbxException, IOException {
         // Get files and folder metadata from Dropbox root directory
-        ListFolderResult result = client.files().listFolder("");
+        ListFolderResult result = client.files().listFolder(path);
         List<String> entries = new ArrayList<>();
         while (true) {
             entries.addAll(result.getEntries().stream().map(Metadata::getPathLower).collect(Collectors.toList()));
