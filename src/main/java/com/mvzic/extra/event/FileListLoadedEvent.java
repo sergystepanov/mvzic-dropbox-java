@@ -1,15 +1,17 @@
 package com.mvzic.extra.event;
 
+import com.mvzic.extra.property.Entry;
+
 import java.util.List;
 
 public class FileListLoadedEvent {
-    private final List<String> files;
+    private final List<Entry> files;
 
-    public FileListLoadedEvent(List<String> files) {
+    public FileListLoadedEvent(List<Entry> files) {
         this.files = files;
     }
 
-    public List<String> getFiles() {
+    public List<Entry> getFiles() {
         return files;
     }
 }

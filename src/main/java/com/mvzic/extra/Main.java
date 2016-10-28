@@ -15,6 +15,7 @@ import com.mvzic.extra.file.Path;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.page.FilePage;
 import com.mvzic.extra.page.SettingsPage;
+import com.mvzic.extra.property.Entry;
 import com.mvzic.extra.ui.Bar;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -75,7 +76,7 @@ public class Main extends Application {
         Scene scene = new Scene(root, 600, 600);
         primaryStage.setScene(scene);
 
-        mainPane = new FilePage(eventBus);
+        mainPane = new FilePage(eventBus, lang);
 
         setCenter(root, mainPane);
 
@@ -117,13 +118,13 @@ public class Main extends Application {
         root.setCenter(pane);
     }
 
-    private void setFiles(final List<String> files) {
+    private void setFiles(final List<Entry> files) {
         if (files.isEmpty()) {
             return;
         }
 
         if (!rout.isEmpty()) {
-            files.add(0, Path.PARENT);
+            files.add(0, new Entry(Path.PARENT, "", true));
         }
 
         ((FilePage) mainPane).setFiles(files);

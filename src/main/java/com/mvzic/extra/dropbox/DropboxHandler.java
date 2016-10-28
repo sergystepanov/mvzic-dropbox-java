@@ -3,8 +3,10 @@ package com.mvzic.extra.dropbox;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.DbxRequestConfig;
 import com.dropbox.core.v2.DbxClientV2;
+import com.dropbox.core.v2.files.FolderMetadata;
 import com.dropbox.core.v2.files.ListFolderResult;
 import com.dropbox.core.v2.files.Metadata;
+import com.mvzic.extra.property.Entry;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,12 +25,17 @@ public class DropboxHandler {
         client = new DbxClientV2(config, accessToken);
     }
 
-    public List<String> getFiles(final String path) throws DbxException, IOException {
+    public List<Entry> getFiles(final String path) throws DbxException, IOException {
         // Get files and folder metadata from Dropbox root directory
-        ListFolderResult result = client.files().listFolder(path);
-        List<String> entries = new ArrayList<>();
+        ListFolderResult result = client.files().listFolderBuilder(path)
+                .withIncludeMediaInfo(true)
+                .start();
+
+        List<Entry> entries = new ArrayList<>();
         while (true) {
-            entries.addAll(result.getEntries().stream().map(Metadata::getPathLower).collect(Collectors.toList()));
+            for (Metadata metadata : result.getEntries()) {
+                entries.add(new Entry(metadata.getName(), metadata.getPathLower(), metadata instanceof FolderMetadata));
+            }
 
             if (!result.getHasMore()) {
                 break;
