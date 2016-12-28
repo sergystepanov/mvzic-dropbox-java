@@ -3,7 +3,7 @@ package com.mvzic.extra.app;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-public class AppSettings {
+public final class AppSettings {
     private static final String settingsRootName = "mvzic-dropbox-java";
     private final Preferences preferences;
 

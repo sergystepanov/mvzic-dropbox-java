@@ -11,15 +11,19 @@ import com.mvzic.extra.property.Entry;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class DropboxHandler {
+/**
+ * Dropbox API V2 handler.
+ *
+ * @since 1.0.0
+ */
+public final class DropboxHandler {
     private final DbxClientV2 client;
 
     public DropboxHandler(final String accessToken) {
         // Create Dropbox client
         DbxRequestConfig config = DbxRequestConfig
-                .newBuilder("mvzic-dropbox-java.client/0.0.1")
+                .newBuilder("mvzic-dropbox-java.client/1.0.0")
                 .withUserLocale("ru-RU")
                 .build();
         client = new DbxClientV2(config, accessToken);
