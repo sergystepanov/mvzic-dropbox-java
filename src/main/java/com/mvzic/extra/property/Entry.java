@@ -1,19 +1,18 @@
 package com.mvzic.extra.property;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class Entry {
     private final StringProperty name;
     private final StringProperty path;
     private final BooleanProperty folder;
+    private final IntegerProperty size;
 
     public Entry(String name, String path, boolean folder) {
         this.name = new SimpleStringProperty(name);
         this.path = new SimpleStringProperty(path);
         this.folder = new SimpleBooleanProperty(folder);
+        this.size = new SimpleIntegerProperty(100);
     }
 
     public String getName() {
@@ -50,5 +49,17 @@ public class Entry {
 
     public void setPath(String path) {
         this.path.set(path);
+    }
+
+    public int getSize() {
+        return size.get();
+    }
+
+    public IntegerProperty sizeProperty() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size.set(size);
     }
 }
