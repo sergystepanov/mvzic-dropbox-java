@@ -1,7 +1,7 @@
 apply plugin: 'java'
 
 group = 'com.mvzic.extra'
-version = '0.0.1'
+version = '1.0.0'
 
 sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     compile 'com.dropbox.core:dropbox-core-sdk:2.1.2'
-    compile 'com.google.guava:guava:19.0'
+    compile 'com.google.guava:guava:20.0'
 
     testCompile 'junit:junit:4.12'
 }
