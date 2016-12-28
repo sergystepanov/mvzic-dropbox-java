@@ -1,4 +1,4 @@
-package com.mvzic.extra.event;
+package com.mvzic.extra.event.settings;
 
 public class TokenSetEvent {
     private final String token;

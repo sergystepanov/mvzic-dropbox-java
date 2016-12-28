@@ -10,22 +10,27 @@ import com.mvzic.extra.dropbox.DropboxHandler;
 import com.mvzic.extra.event.FileListLoadedEvent;
 import com.mvzic.extra.event.FileSelectedEvent;
 import com.mvzic.extra.event.MessagedEvent;
-import com.mvzic.extra.event.TokenSetEvent;
+import com.mvzic.extra.event.StartPageSelectedEvent;
+import com.mvzic.extra.event.settings.TokenSetEvent;
+import com.mvzic.extra.event.menu.AppDropboxReloadEvent;
+import com.mvzic.extra.event.menu.AppSwitchedToSettingsEvent;
+import com.mvzic.extra.event.menu.AppTerminatedEvent;
 import com.mvzic.extra.file.Path;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.page.FilePage;
 import com.mvzic.extra.page.SettingsPage;
+import com.mvzic.extra.property.DotDotDotEntry;
 import com.mvzic.extra.property.Entry;
+import com.mvzic.extra.ui.AppMenuBar;
 import com.mvzic.extra.ui.Bar;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -36,7 +41,9 @@ public class Main extends Application {
     private DropboxHandler dropbox;
     private Pane mainPane;
     private static final EventBus eventBus = new EventBus(Settings.MAIN_BUS);
+    private static final UnicodeBundle lang = new UnicodeBundle(ResourceBundle.getBundle("i18l.MyBundle"));
     private String rout;
+    private BorderPane root;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -44,51 +51,25 @@ public class Main extends Application {
 
         AppSettings appSettings = new AppSettings();
         String token = appSettings.get(Settings.TOKEN);
-
-        BorderPane root = new BorderPane();
-
-        UnicodeBundle lang = new UnicodeBundle(ResourceBundle.getBundle("i18l.MyBundle"));
-
         dropbox = new DropboxHandler(token);
 
-        MenuBar menuBar = new MenuBar();
-        Menu menu = new Menu(lang.get("menu_file"));
+        root = new BorderPane();
+        root.setTop(new AppMenuBar(eventBus, lang));
 
-        MenuItem options = new MenuItem(lang.get("menu_options"));
-        options.setOnAction(event -> {
-            SettingsPage page = new SettingsPage(eventBus);
-            setCenter(root, page);
-        });
-
-        MenuItem reload = new MenuItem(lang.get("menu_reload"));
-        reload.setOnAction(event -> reloadDropboxFiles(Path.ROOT));
-
-        MenuItem quit = new MenuItem(lang.get("menu_exit"));
-        quit.setOnAction(e -> Platform.exit());
-        menu.getItems().add(options);
-        menu.getItems().add(reload);
-        menu.getItems().add(quit);
-        menuBar.getMenus().add(menu);
-        //menuBar.setUseSystemMenuBar(true);
-
-        root.setTop(menuBar);
-
-        Scene scene = new Scene(root, 600, 600);
+        // Resize to fit into viewport
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        Scene scene = new Scene(root, screenBounds.getWidth() / 2, screenBounds.getHeight() / 1.2);
         primaryStage.setScene(scene);
-
-        mainPane = new FilePage(eventBus, lang);
-
-        setCenter(root, mainPane);
 
         Bar bar = new Bar();
         root.setBottom(bar);
 
-        primaryStage.show();
-
         eventBus.register(this);
         eventBus.register(bar);
 
-        reloadDropboxFiles(Path.ROOT);
+        showStartPage();
+
+        primaryStage.show();
     }
 
     @Subscribe
@@ -112,10 +93,39 @@ public class Main extends Application {
         eventBus.post(new MessagedEvent("[settings] the token has been set"));
     }
 
-    private void setCenter(final BorderPane root, final Pane pane) {
+    @Subscribe
+    void listenStartPageSelect(final StartPageSelectedEvent event) {
+        showStartPage();
+    }
+
+    // Menu event listeners
+    @Subscribe
+    void listenMenuSettingsPage(final AppSwitchedToSettingsEvent event) {
+        switchTo(new SettingsPage(eventBus));
+    }
+
+    @Subscribe
+    void listenDropboxReload(final AppDropboxReloadEvent event) {
+        reloadDropboxFiles(Path.ROOT);
+    }
+
+    @Subscribe
+    void listenMenuExit(final AppTerminatedEvent event) {
+        Platform.exit();
+    }
+
+    private void switchTo(final Pane pane) {
+        mainPane = pane;
+
+        // Set the center element contents
         pane.prefWidthProperty().bind(root.widthProperty());
         pane.prefHeightProperty().bind(root.heightProperty());
         root.setCenter(pane);
+    }
+
+    private void showStartPage() {
+        switchTo(new FilePage(eventBus, lang));
+        reloadDropboxFiles(Path.ROOT);
     }
 
     private void setFiles(final List<Entry> files) {
@@ -123,8 +133,9 @@ public class Main extends Application {
             return;
         }
 
+        // The magic dotdotdot entry
         if (!rout.isEmpty()) {
-            files.add(0, new Entry(Path.PARENT, "", true));
+            files.add(0, new DotDotDotEntry());
         }
 
         ((FilePage) mainPane).setFiles(files);

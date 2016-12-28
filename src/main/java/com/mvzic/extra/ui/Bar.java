@@ -1,6 +1,5 @@
 package com.mvzic.extra.ui;
 
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.mvzic.extra.event.MessagedEvent;
 import javafx.scene.control.Label;
