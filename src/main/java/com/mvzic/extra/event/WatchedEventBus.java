@@ -17,8 +17,8 @@ public class WatchedEventBus extends EventBus {
     private final static Logger LOGGER = Logger.getLogger(WatchedEventBus.class.getName());
     private Set<AppPage> watched;
 
-    public WatchedEventBus(final String identifier) {
-        super(identifier);
+    public WatchedEventBus() {
+        super();
 
         this.watched = new HashSet<>();
     }

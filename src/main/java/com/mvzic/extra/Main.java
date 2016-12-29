@@ -9,7 +9,7 @@ import com.mvzic.extra.event.StartPageSelectedEvent;
 import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.event.menu.AppSwitchedToSettingsEvent;
 import com.mvzic.extra.event.menu.AppTerminatedEvent;
-import com.mvzic.extra.event.settings.TokenSetEvent;
+import com.mvzic.extra.event.settings.AppOptionChangedEvent;
 import com.mvzic.extra.event.ui.EventWithStage;
 import com.mvzic.extra.event.ui.PopupWindowEvent;
 import com.mvzic.extra.lang.UnicodeBundle;
@@ -29,11 +29,11 @@ import javafx.stage.Stage;
 import java.util.ResourceBundle;
 
 public class Main extends Application {
-    private DropboxHandler dropbox;
+    private static DropboxHandler dropbox;
     private AppPage currentPage;
-    private static final WatchedEventBus eventBus = new WatchedEventBus(Settings.MAIN_BUS);
+    private static final WatchedEventBus eventBus = new WatchedEventBus();
     private static final UnicodeBundle lang = new UnicodeBundle(ResourceBundle.getBundle("i18l.MyBundle"));
-    private AppSettings appSettings;
+    private static final AppSettings appSettings = new AppSettings();
     private BorderPane root;
     private Stage primaryStage;
 
@@ -41,7 +41,6 @@ public class Main extends Application {
     public void start(Stage primaryStage) throws Exception {
         this.primaryStage = primaryStage;
 
-        appSettings = new AppSettings();
         String token = appSettings.get(Settings.TOKEN);
         dropbox = new DropboxHandler(token);
 
@@ -65,10 +64,11 @@ public class Main extends Application {
     }
 
     @Subscribe
-    public void listenTokenSet(final TokenSetEvent event) {
-        new AppSettings().set(Settings.TOKEN, event.getToken());
-        dropbox = new DropboxHandler(event.getToken());
-        eventBus.post(new MessagedEvent("[settings] the token has been set"));
+    void onSettingsChanged(final AppOptionChangedEvent event) {
+        if (event.getOption().equals(Settings.TOKEN)) {
+            dropbox = new DropboxHandler(event.getValue());
+            eventBus.post(new MessagedEvent("[dropbox] has been reloaded"));
+        }
     }
 
     @Subscribe

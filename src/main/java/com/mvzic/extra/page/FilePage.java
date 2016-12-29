@@ -97,7 +97,7 @@ public final class FilePage extends AppPage {
                     dropbox.setPath(next);
                 } catch (ListFolderErrorException e) {
                     Platform.runLater(() -> getEventBus().post(new MessagedEvent("[dropbox] was not a folder: " + path)));
-                } catch (DbxException | IOException e) {
+                } catch (DbxException e) {
                     e.printStackTrace();
                 }
 

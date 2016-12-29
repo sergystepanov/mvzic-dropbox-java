@@ -14,17 +14,19 @@ public final class AppSettings {
             String[] keys = preferences.keys();
             for (String key : keys) {
                 System.out.println(key);
+                System.out.println(preferences.get(key, ""));
             }
         } catch (BackingStoreException e) {
             System.out.println(e.getMessage());
         }
     }
 
-    public void set(final String key, final String value) {
-        preferences.put(key, value);
+    public void set(final Settings key, final String value) {
+        System.out.println(key.name() + " -<");
+        preferences.put(key.name(), value);
     }
 
-    public String get(final String key) {
-        return preferences.get(key, "");
+    public String get(final Settings key) {
+        return preferences.get(key.name(), "");
     }
 }

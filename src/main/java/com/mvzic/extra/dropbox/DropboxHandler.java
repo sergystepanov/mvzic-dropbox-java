@@ -33,7 +33,7 @@ public final class DropboxHandler {
         client = new DbxClientV2(config, accessToken);
     }
 
-    public List<Entry> getFiles(final String path) throws DbxException, IOException {
+    public List<Entry> getFiles(final String path) throws DbxException {
         // Get files and folder metadata from Dropbox root directory
         ListFolderResult result = client.files().listFolderBuilder(path)
                 .withIncludeMediaInfo(true)

@@ -1,7 +1,5 @@
 package com.mvzic.extra.page;
 
-import com.google.common.base.Objects;
-import com.google.common.eventbus.EventBus;
 import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.lang.UnicodeBundle;
 import javafx.scene.layout.Pane;
@@ -29,8 +27,12 @@ public abstract class AppPage extends Pane {
 
     public abstract String getKey();
 
-    public WatchedEventBus getEventBus() {
+    WatchedEventBus getEventBus() {
         return eventBus;
+    }
+
+    public UnicodeBundle getUnicodeBundle() {
+        return unicodeBundle;
     }
 
     @Override
