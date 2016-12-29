@@ -1,19 +1,29 @@
 package com.mvzic.extra.page;
 
-import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
+import com.mvzic.extra.app.AppSettings;
 import com.mvzic.extra.event.StartPageSelectedEvent;
+import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.event.settings.LocalPathSetEvent;
 import com.mvzic.extra.event.settings.TokenSetEvent;
+import com.mvzic.extra.event.ui.DirectorySelectionChangedEvent;
+import com.mvzic.extra.event.ui.PopupWindowEvent;
+import com.mvzic.extra.lang.UnicodeBundle;
+import com.mvzic.extra.ui.DirChooserView;
 import javafx.event.ActionEvent;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
+import javafx.stage.DirectoryChooser;
 
-public class SettingsPage extends Pane {
-    public SettingsPage(final EventBus eventBus) {
+import java.io.File;
+
+public class SettingsPage extends AppPage {
+    public SettingsPage(final WatchedEventBus eventBus, final UnicodeBundle lang, final AppSettings settings) {
+        super(eventBus, lang);
+
         final GridPane grid = new GridPane();
 
         grid.setPadding(new Insets(10, 10, 10, 10));
@@ -44,6 +54,11 @@ public class SettingsPage extends Pane {
         grid.getChildren().add(submit2);
         submit2.setOnAction((ActionEvent e) -> eventBus.post(new LocalPathSetEvent(dropboxPath.getText())));
 
+        final DirChooserView dir = new DirChooserView(eventBus);
+        GridPane.setConstraints(dir, 1, 3);
+        dir.setOnAction(e -> eventBus.post(new PopupWindowEvent(new DirectorySelectionChangedEvent())));
+        grid.getChildren().add(dir);
+
         final Button exit = new Button();
         exit.setText("Exit");
         exit.setOnAction(e -> eventBus.post(new StartPageSelectedEvent()));
@@ -51,5 +66,20 @@ public class SettingsPage extends Pane {
         grid.getChildren().add(exit);
 
         getChildren().add(grid);
+    }
+
+    @Subscribe
+    void listenDirChange(final DirectorySelectionChangedEvent event) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        File dir = directoryChooser.showDialog(event.getStage());
+
+        if (dir != null) {
+            System.out.println(dir.getAbsolutePath());
+        }
+    }
+
+    @Override
+    public String getKey() {
+        return "SETTINGS";
     }
 }
