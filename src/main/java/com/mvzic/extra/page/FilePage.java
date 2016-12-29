@@ -5,6 +5,8 @@ import com.dropbox.core.v2.files.ListFolderErrorException;
 import com.google.common.eventbus.Subscribe;
 import com.mvzic.extra.app.AppSettings;
 import com.mvzic.extra.app.Settings;
+import com.mvzic.extra.audio.AudioMetadataReader;
+import com.mvzic.extra.audio.JaudiotagReader;
 import com.mvzic.extra.dropbox.DropboxHandler;
 import com.mvzic.extra.event.FileListLoadedEvent;
 import com.mvzic.extra.event.FileSelectedEvent;
@@ -168,7 +170,9 @@ public final class FilePage extends AppPage {
             if (!entry.folderProperty().get()) {
                 final File file = new File(settings.get(Settings.LOCAL_PATH) + entry.getPath());
                 if (file.exists()) {
+                    AudioMetadataReader reader = new JaudiotagReader();
                     entry.setSize((int) file.length() / 1024 / 1024);
+                    reader.getTag(file);
                 }
             }
 

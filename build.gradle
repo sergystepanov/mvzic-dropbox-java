@@ -7,12 +7,14 @@ sourceCompatibility = JavaVersion.VERSION_1_8
 targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
+    maven { url "https://dl.bintray.com/ijabz/maven" }
     mavenCentral()
 }
 
 dependencies {
     compile 'com.dropbox.core:dropbox-core-sdk:2.1.2'
     compile 'com.google.guava:guava:20.0'
+    compile 'net.jthink:jaudiotagger:2.2.5'
 
     testCompile 'junit:junit:4.12'
 }
