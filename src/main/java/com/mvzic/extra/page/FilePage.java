@@ -3,6 +3,8 @@ package com.mvzic.extra.page;
 import com.dropbox.core.DbxException;
 import com.dropbox.core.v2.files.ListFolderErrorException;
 import com.google.common.eventbus.Subscribe;
+import com.mvzic.extra.app.AppSettings;
+import com.mvzic.extra.app.Settings;
 import com.mvzic.extra.dropbox.DropboxHandler;
 import com.mvzic.extra.event.FileListLoadedEvent;
 import com.mvzic.extra.event.FileSelectedEvent;
@@ -19,7 +21,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,11 +35,15 @@ public final class FilePage extends AppPage {
     private ObservableList<Entry> files;
     private final FileTableView table;
     private final DropboxHandler dropbox;
+    private final AppSettings settings;
 
-    public FilePage(final WatchedEventBus eventBus, final UnicodeBundle lang, final DropboxHandler dropbox) {
+    public FilePage(final WatchedEventBus eventBus, final UnicodeBundle lang, DropboxHandler dropbox,
+                    AppSettings settings) {
         super(eventBus, lang);
 
         this.dropbox = dropbox;
+        this.settings = settings;
+
         table = new FileTableView(lang);
         files = FXCollections.observableArrayList();
 
@@ -136,12 +144,37 @@ public final class FilePage extends AppPage {
             return;
         }
 
+        List<Entry> list = new ArrayList<>(fillLocalData(entries));
+
         // The magic dotdotdot entry
         if (!dropbox.getPath().equals(Path.ROOT)) {
-            entries.add(0, new DotDotDotEntry());
+            list.add(0, new DotDotDotEntry());
         }
 
-        files.setAll(entries);
+        files.setAll(list);
         table.sort();
+    }
+
+    private List<Entry> fillLocalData(final List<Entry> entries) {
+        final String localPath = settings.get(Settings.LOCAL_PATH);
+
+        if (localPath.isEmpty()) {
+            return entries;
+        }
+
+        List<Entry> updated = new ArrayList<>();
+        for (final Entry entry : entries) {
+            // a file
+            if (!entry.folderProperty().get()) {
+                final File file = new File(settings.get(Settings.LOCAL_PATH) + entry.getPath());
+                if (file.exists()) {
+                    entry.setSize((int) file.length() / 1024 / 1024);
+                }
+            }
+
+            updated.add(entry);
+        }
+
+        return updated;
     }
 }

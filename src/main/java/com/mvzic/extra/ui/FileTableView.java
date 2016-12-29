@@ -42,7 +42,7 @@ public class FileTableView extends TableView<Entry> {
     }
 
     /**
-     * Sorts the filename column with root path item at the top.
+     * Sorts the filename column with root path item {@link Path#PARENT} at the top.
      *
      * @since 1.0.0
      */

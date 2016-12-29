@@ -111,7 +111,7 @@ public class Main extends Application {
     }
 
     private void showStartPage() {
-        switchTo(new FilePage(eventBus, lang, dropbox));
+        switchTo(new FilePage(eventBus, lang, dropbox, appSettings));
     }
 
     public static void main(String[] args) {
