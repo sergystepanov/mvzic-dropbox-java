@@ -16,16 +16,16 @@ public class FileTableView extends TableView<Entry> {
     public FileTableView(final UnicodeBundle lang) {
         super();
 
-        TableColumn folderCol = new TableColumn(lang.get("table_col_folder"));
+        TableColumn<Entry, String> folderCol = new TableColumn<>(lang.get("table_col_folder"));
         folderCol.setMaxWidth(colWidth);
         folderCol.setMinWidth(colWidth);
         folderCol.setResizable(false);
         folderCol.setCellValueFactory(new PropertyValueFactory<>("folder"));
 
-        TableColumn nameCol = new TableColumn(lang.get("table_col_name"));
+        TableColumn<Entry, String> nameCol = new TableColumn<>(lang.get("table_col_name"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
 
-        TableColumn sizeCol = new TableColumn(lang.get("table_col_size"));
+        TableColumn<Entry, Integer> sizeCol = new TableColumn<>(lang.get("table_col_size"));
         sizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
         sizeCol.setMaxWidth(colWidth);
         sizeCol.setMinWidth(colWidth);
@@ -33,7 +33,9 @@ public class FileTableView extends TableView<Entry> {
 
         setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
 
-        getColumns().addAll(folderCol, nameCol, sizeCol);
+        getColumns().add(folderCol);
+        getColumns().add(nameCol);
+        getColumns().add(sizeCol);
 
         // Remove blue border
         setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: 1em;");
