@@ -21,9 +21,10 @@ public class JaudiotagReader implements AudioMetadataReader {
             f = AudioFileIO.read(file);
             Tag tag = f.getTag();
 
-            audioTag = new AudioTag(tag.getFirst(FieldKey.ARTIST), tag.getFirst(FieldKey.ALBUM));
-            System.out.println(audioTag);
-
+            if (tag != null) {
+                audioTag = new AudioTag(tag.getFirst(FieldKey.ARTIST), tag.getFirst(FieldKey.ALBUM));
+                System.out.println(audioTag);
+            }
         } catch (CannotReadException | IOException | TagException | ReadOnlyFileException |
                 InvalidAudioFrameException e) {
            // e.printStackTrace();

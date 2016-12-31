@@ -1,7 +1,9 @@
 package com.mvzic.extra.page;
 
+import com.mvzic.extra.event.MessagedEvent;
 import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.lang.UnicodeBundle;
+import javafx.application.Platform;
 import javafx.scene.layout.Pane;
 
 /**
@@ -33,6 +35,10 @@ public abstract class AppPage extends Pane {
 
     public UnicodeBundle getUnicodeBundle() {
         return unicodeBundle;
+    }
+
+    void message(final String message) {
+        Platform.runLater(() -> getEventBus().post(new MessagedEvent(message)));
     }
 
     @Override

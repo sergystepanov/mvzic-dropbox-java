@@ -8,9 +8,7 @@ import com.mvzic.extra.app.Settings;
 import com.mvzic.extra.audio.AudioMetadataReader;
 import com.mvzic.extra.audio.JaudiotagReader;
 import com.mvzic.extra.dropbox.DropboxHandler;
-import com.mvzic.extra.event.FileListLoadedEvent;
-import com.mvzic.extra.event.FileSelectedEvent;
-import com.mvzic.extra.event.MessagedEvent;
+import com.mvzic.extra.event.FolderOpenedEvent;
 import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.event.menu.AppDropboxReloadEvent;
 import com.mvzic.extra.file.Path;
@@ -18,13 +16,10 @@ import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.property.DotDotDotEntry;
 import com.mvzic.extra.property.Entry;
 import com.mvzic.extra.ui.FileTableView;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Task;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,68 +61,23 @@ public final class FilePage extends AppPage {
 
                 // Fire open events for folders only
                 if (anEntry.folderProperty().get()) {
-                    eventBus.post(new FileSelectedEvent(anEntry.getPath()));
+                    eventBus.post(new FolderOpenedEvent(anEntry.getPath()));
                 }
             }
         });
 
-        reloadDropboxFiles(dropbox.getPath());
-
-//        table.getSelectionModel().selectedItemProperty().addListener(
-//                (ObservableValue<? extends Entry> observable, Entry oldValue, Entry newValue) -> {
-//                    if (newValue != null) {
-//                        //eventBus.post(new FileSelectedEvent(newValue.getPath()));
-//                    }
-//                });
+        listDropboxFolder(dropbox.getPath());
     }
 
     @Subscribe
-    void listenDropboxReload(final AppDropboxReloadEvent event) {
-        reloadDropboxFiles(Path.ROOT);
-    }
-
-    private void reloadDropboxFiles(final String path) {
-        new Thread(new Task<Void>() {
-            @Override
-            public Void call() {
-                try {
-                    Platform.runLater(() -> {
-                        if (path != null) {
-                            getEventBus().post(new MessagedEvent("[dropbox] open: " + path));
-                        }
-                    });
-
-                    String next = path;
-
-                    if (path.equals(Path.PARENT)) {
-                        next = dropbox.getPath().substring(0, dropbox.getPath().lastIndexOf('/'));
-                    }
-
-                    getEventBus().post(new FileListLoadedEvent(dropbox.getFiles(next)));
-                    dropbox.setPath(next);
-                } catch (ListFolderErrorException e) {
-                    Platform.runLater(() -> getEventBus().post(new MessagedEvent("[dropbox] was not a folder: " + path)));
-                } catch (DbxException e) {
-                    e.printStackTrace();
-                }
-
-                return null;
-            }
-        }).start();
+    void onDropboxReset(final AppDropboxReloadEvent event) {
+        listDropboxFolder(Path.ROOT);
     }
 
     @Subscribe
-    public void listenFileSelect(final FileSelectedEvent event) {
-        getEventBus().post(new MessagedEvent("[list] selected: " + event.getFileName()));
-        reloadDropboxFiles(event.getFileName());
-    }
-
-    @Subscribe
-    public void listenFileListChange(final FileListLoadedEvent event) {
-        Platform.runLater(() -> {
-            setFiles(event.getFiles());
-            getEventBus().post(new MessagedEvent("[dropbox] files have been loaded"));
-        });
+    void onFolderOpened(final FolderOpenedEvent event) {
+        listDropboxFolder(event.getPath());
+        message("[list] selected: " + event.getPath());
     }
 
     @Override
@@ -136,17 +86,37 @@ public final class FilePage extends AppPage {
     }
 
     /**
+     * Loads files from the provided {@code path}.
+     *
+     * @param path A path to load files from.
+     * @since 1.0.0
+     */
+    private void listDropboxFolder(final String path) {
+        new Thread(() -> {
+            try {
+                message("[dropbox] to open: " + path);
+                showFiles(dropbox.getFiles(path));
+                message("[dropbox] files have been loaded");
+            } catch (ListFolderErrorException e) {
+                message("[dropbox] was not a folder: " + path);
+            } catch (DbxException e) {
+                message("[dropbox] an api exception, " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /**
      * Sets the table data values.
      *
      * @param entries The data to set with.
      * @since 1.0.0
      */
-    private void setFiles(final List<Entry> entries) {
+    private void showFiles(final List<Entry> entries) {
         if (entries.isEmpty()) {
             return;
         }
 
-        List<Entry> list = new ArrayList<>(fillLocalData(entries));
+        List<Entry> list = new ArrayList<>(readLocalData(entries));
 
         // The magic dotdotdot entry
         if (!dropbox.getPath().equals(Path.ROOT)) {
@@ -157,7 +127,14 @@ public final class FilePage extends AppPage {
         table.sort();
     }
 
-    private List<Entry> fillLocalData(final List<Entry> entries) {
+    /**
+     * Reads local data of the Dropbox files.
+     *
+     * @param entries The entry to read data for.
+     * @return A list of the entries with its data.
+     * @since 1.0.0
+     */
+    private List<Entry> readLocalData(final List<Entry> entries) {
         final String localPath = settings.get(Settings.LOCAL_PATH);
 
         if (localPath.isEmpty()) {

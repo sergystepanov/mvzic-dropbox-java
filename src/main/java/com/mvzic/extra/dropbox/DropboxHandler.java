@@ -9,7 +9,6 @@ import com.dropbox.core.v2.files.Metadata;
 import com.mvzic.extra.file.Path;
 import com.mvzic.extra.property.Entry;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,8 +33,11 @@ public final class DropboxHandler {
     }
 
     public List<Entry> getFiles(final String path) throws DbxException {
+        final String dir = buildPath(path);
+        setPath(dir);
+
         // Get files and folder metadata from Dropbox root directory
-        ListFolderResult result = client.files().listFolderBuilder(path)
+        ListFolderResult result = client.files().listFolderBuilder(dir)
                 .withIncludeMediaInfo(true)
                 .start();
 
@@ -55,11 +57,22 @@ public final class DropboxHandler {
         return entries;
     }
 
+    /**
+     * Converts magic paths into absolute ones.
+     *
+     * @param path The path to convert.
+     * @return An absolute path.
+     * @since 1.0.0
+     */
+    private String buildPath(final String path) {
+        return path.equals(Path.PARENT) ? getPath().substring(0, getPath().lastIndexOf('/')) : path;
+    }
+
     public String getPath() {
         return path;
     }
 
-    public void setPath(String path) {
+    private void setPath(String path) {
         this.path = path;
     }
 }
