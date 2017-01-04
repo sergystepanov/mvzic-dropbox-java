@@ -1,5 +1,6 @@
 package com.mvzic.extra.audio;
 
+import lombok.extern.slf4j.Slf4j;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.exceptions.CannotReadException;
@@ -12,6 +13,12 @@ import org.jaudiotagger.tag.TagException;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * The audio tag reader implementation with {@code Jaudiotag}.
+ *
+ * @since 1.0.0
+ */
+@Slf4j
 public class JaudiotagReader implements AudioMetadataReader {
     @Override
     public AudioTag getTag(final File file) {
@@ -23,11 +30,11 @@ public class JaudiotagReader implements AudioMetadataReader {
 
             if (tag != null) {
                 audioTag = new AudioTag(tag.getFirst(FieldKey.ARTIST), tag.getFirst(FieldKey.ALBUM));
-                System.out.println(audioTag);
+                log.info("[audio] tag: {}", audioTag);
             }
         } catch (CannotReadException | IOException | TagException | ReadOnlyFileException |
                 InvalidAudioFrameException e) {
-           // e.printStackTrace();
+            log.error("[audio] {}", e.getMessage());
         }
 
         return audioTag;

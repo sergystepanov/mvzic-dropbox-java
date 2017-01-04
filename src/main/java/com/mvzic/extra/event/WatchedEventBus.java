@@ -2,19 +2,18 @@ package com.mvzic.extra.event;
 
 import com.google.common.eventbus.EventBus;
 import com.mvzic.extra.page.AppPage;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A custom event bus implementation with watched events tracking.
  *
  * @since 1.0.0
  */
+@Slf4j
 public class WatchedEventBus extends EventBus {
-    private final static Logger LOGGER = Logger.getLogger(WatchedEventBus.class.getName());
     private Set<AppPage> watched;
 
     public WatchedEventBus() {
@@ -34,7 +33,7 @@ public class WatchedEventBus extends EventBus {
         register(page);
         watched.add(page);
 
-        LOGGER.log(Level.INFO, "watching {0}, total {1}", new Object[]{page.toString(), watched.size()});
+        log.info("watching {}, total {}", page.toString(), watched.size());
     }
 
     /**
