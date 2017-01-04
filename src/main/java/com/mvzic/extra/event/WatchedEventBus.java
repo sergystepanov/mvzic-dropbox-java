@@ -14,7 +14,7 @@ import java.util.Set;
  */
 @Slf4j
 public class WatchedEventBus extends EventBus {
-    private Set<AppPage> watched;
+    private final Set<AppPage> watched;
 
     public WatchedEventBus() {
         super();

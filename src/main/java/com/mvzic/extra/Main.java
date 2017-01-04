@@ -10,7 +10,6 @@ import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.event.menu.AppSwitchedToSettingsEvent;
 import com.mvzic.extra.event.menu.AppTerminatedEvent;
 import com.mvzic.extra.event.settings.AppOptionChangedEvent;
-import com.mvzic.extra.event.ui.EventWithStage;
 import com.mvzic.extra.event.ui.PopupWindowEvent;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.page.AppPage;
@@ -25,9 +24,11 @@ import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ResourceBundle;
 
+@Slf4j
 public class Main extends Application {
     private static DropboxHandler dropbox;
     private AppPage currentPage;
@@ -36,31 +37,26 @@ public class Main extends Application {
     private static final AppSettings appSettings = new AppSettings();
     private BorderPane root;
     private Stage primaryStage;
+    private final static long start = System.nanoTime();
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
 
-        String token = appSettings.get(Settings.TOKEN);
-        dropbox = new DropboxHandler(token);
+        dropbox = new DropboxHandler(appSettings.get(Settings.TOKEN));
 
-        root = new BorderPane();
-        root.setTop(new AppMenuBar(eventBus, lang));
-
-        // Resize to fit into viewport
-        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
-        Scene scene = new Scene(root, screenBounds.getWidth() / 2, screenBounds.getHeight() / 1.2);
-        primaryStage.setScene(scene);
-
-        Bar bar = new Bar();
-        root.setBottom(bar);
+        final Bar bar = new Bar();
+        root = new BorderPane(null, new AppMenuBar(eventBus, lang), null, bar, null);
 
         eventBus.register(this);
         eventBus.register(bar);
 
+        resizeStage();
         showStartPage();
 
         primaryStage.show();
+
+        log.info("[app] start time: {} ms", (System.nanoTime() - start) / 1000000);
     }
 
     @Subscribe
@@ -72,29 +68,31 @@ public class Main extends Application {
     }
 
     @Subscribe
-    void listenStartPageSelect(final StartPageSelectedEvent event) {
+    void onStartPageSelect(final StartPageSelectedEvent event) {
         showStartPage();
     }
 
-    // Menu event listeners
     @Subscribe
-    void listenMenuSettingsPage(final AppSwitchedToSettingsEvent event) {
+    void onSettingsPageSelect(final AppSwitchedToSettingsEvent event) {
         switchTo(new SettingsPage(eventBus, lang, appSettings));
     }
 
     @Subscribe
-    void listenDialogSelected(final PopupWindowEvent event) {
-        EventWithStage callback = event.getCallback();
-        callback.setStage(primaryStage);
-
-        eventBus.post(callback);
+    void onDialogSelect(final PopupWindowEvent event) {
+        eventBus.post(event.getCallback().setStage(primaryStage));
     }
 
     @Subscribe
-    void listenMenuExit(final AppTerminatedEvent event) {
+    void onExit(final AppTerminatedEvent event) {
         Platform.exit();
     }
 
+    /**
+     * Changes current page to the provided one.
+     *
+     * @param page the {@code page} to switch to.
+     * @since 1.0.0
+     */
     private void switchTo(final AppPage page) {
         if (currentPage != null && currentPage.equals(page)) {
             return;
@@ -110,11 +108,26 @@ public class Main extends Application {
         eventBus.registerSingleWatched(page);
     }
 
+    /**
+     * Shows current starting page of the app.
+     *
+     * @since 1.0.0
+     */
     private void showStartPage() {
         switchTo(new FilePage(eventBus, lang, dropbox, appSettings));
     }
 
-    public static void main(String[] args) {
+    /**
+     * Resize the stage to fit it into the screen resolution.
+     *
+     * @since 1.0.0
+     */
+    private void resizeStage() {
+        Rectangle2D screenBounds = Screen.getPrimary().getVisualBounds();
+        primaryStage.setScene(new Scene(root, screenBounds.getWidth() / 2, screenBounds.getHeight() / 1.2));
+    }
+
+    public static void main(String... args) {
         launch(args);
     }
 }

@@ -20,7 +20,7 @@ import javafx.stage.DirectoryChooser;
 
 import java.io.File;
 
-public class SettingsPage extends AppPage {
+public final class SettingsPage extends AppPage {
     private final AppSettings settings;
     private final TextField dropboxPath;
 
@@ -34,39 +34,46 @@ public class SettingsPage extends AppPage {
         grid.setVgap(5);
         grid.setHgap(5);
 
+        // Settings caption
         final Label caption = new Label(lang.get("settings_caption"));
         GridPane.setConstraints(caption, 0, 0);
         grid.getChildren().add(caption);
 
+        // Token field
         final TextField token = new TextField();
         token.setPromptText(lang.get("settings_token_placeholder"));
         GridPane.setConstraints(token, 0, 1);
         grid.getChildren().add(token);
 
-        Button submit = new Button(lang.get("settings_set"));
+        // Token set button
+        final Button submit = new Button(lang.get("settings_set"));
         GridPane.setConstraints(submit, 1, 1);
         grid.getChildren().add(submit);
         submit.setOnAction((ActionEvent e) ->
                 eventBus.post(new AppOptionChangedEvent(Settings.TOKEN, token.getText())));
 
+        // Dropbox's local path caption
         dropboxPath = new TextField();
         dropboxPath.setPromptText(lang.get("settings_local_path_placeholder"));
         GridPane.setConstraints(dropboxPath, 0, 2);
         grid.getChildren().add(dropboxPath);
 
-        Button submit2 = new Button(lang.get("settings_set"));
+        // Dropbox's local path set button
+        final Button submit2 = new Button(lang.get("settings_set"));
         GridPane.setConstraints(submit2, 1, 2);
         grid.getChildren().add(submit2);
         submit2.setOnAction((ActionEvent e) ->
                 eventBus.post(new AppOptionChangedEvent(Settings.LOCAL_PATH, dropboxPath.getText())));
 
+        // Dropbox's local directory chooser
         final DirChooserView dir = new DirChooserView(eventBus);
-        GridPane.setConstraints(dir, 1, 3);
+        GridPane.setConstraints(dir, 2, 2);
         dir.setOnAction(e -> eventBus.post(new PopupWindowEvent(new DirectorySelectionChangedEvent())));
         grid.getChildren().add(dir);
 
+        // Settings' exit button
         final Button exit = new Button();
-        exit.setText("Exit");
+        exit.setText(lang.get("settings_close"));
         exit.setOnAction(e -> eventBus.post(new StartPageSelectedEvent()));
         GridPane.setConstraints(exit, 0, 3);
         grid.getChildren().add(exit);
@@ -80,17 +87,11 @@ public class SettingsPage extends AppPage {
     }
 
     @Subscribe
-    void listenDirChange(final DirectorySelectionChangedEvent event) {
-        DirectoryChooser directoryChooser = new DirectoryChooser();
-        File dir = directoryChooser.showDialog(event.getStage());
-
+    void onDirChange(final DirectorySelectionChangedEvent event) {
+        final File dir = new DirectoryChooser().showDialog(event.getStage());
         if (dir != null) {
-            setDirText(dir.getAbsolutePath());
+            dropboxPath.setText(dir.getAbsolutePath());
         }
-    }
-
-    private void setDirText(final String value) {
-        dropboxPath.setText(value);
     }
 
     @Override

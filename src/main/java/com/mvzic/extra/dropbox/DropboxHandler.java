@@ -36,10 +36,6 @@ public final class DropboxHandler {
         client = new DbxClientV2(config, accessToken);
     }
 
-    private boolean isAudio(final Entry entry) {
-        return false;//!entry.folderProperty().get() && (entry.getName().endsWith(".mp3") || entry.getName().endsWith(".flac"));
-    }
-
     public List<Entry> getFiles(final String path) throws DbxException {
         final String dir = buildPath(path);
         setPath(dir);
@@ -56,7 +52,8 @@ public final class DropboxHandler {
                 final Entry entry = new Entry(metadata.getName(), metadata.getPathLower(), metadata instanceof FolderMetadata);
                 entries.add(entry);
 
-                if (isAudio(entry)) {
+                //if (Audio.isAllowedExtension(entry.getName())) {
+                if (entry.getName().endsWith("$!~_")) {
                     final long start = System.nanoTime();
 
                     log.info("[dropbox] getting share info for {}", entry.getName());

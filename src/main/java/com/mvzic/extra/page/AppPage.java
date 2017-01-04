@@ -50,4 +50,9 @@ public abstract class AppPage extends Pane {
     public boolean equals(Object o) {
         return this == o || !(o == null || getClass() != o.getClass()) && ((AppPage) o).getKey().equals(getKey());
     }
+
+    @Override
+    public String toString() {
+        return getKey();
+    }
 }

@@ -5,16 +5,16 @@ import com.mvzic.extra.event.MessagedEvent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 
-public class Bar extends Pane {
-    private Label label;
+public final class Bar extends Pane {
+    private final Label label;
 
     public Bar() {
         label = new Label();
-        this.getChildren().add(label);
+        getChildren().add(label);
     }
 
     @Subscribe
-    public void listenMessage(final MessagedEvent event) {
+    void onMessage(final MessagedEvent event) {
         label.setText(event.getMessage());
     }
 }

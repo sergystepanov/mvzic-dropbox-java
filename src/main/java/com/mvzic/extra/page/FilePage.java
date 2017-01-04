@@ -30,7 +30,7 @@ import java.util.List;
  * @since 1.0.0
  */
 public final class FilePage extends AppPage {
-    private ObservableList<Entry> files;
+    private final ObservableList<Entry> files;
     private final FileTableView table;
     private final DropboxHandler dropbox;
     private final AppSettings settings;
