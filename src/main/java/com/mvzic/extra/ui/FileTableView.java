@@ -4,9 +4,10 @@ import com.mvzic.extra.file.Path;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.property.Entry;
 import javafx.collections.FXCollections;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 
 import java.util.Comparator;
 
@@ -24,6 +25,28 @@ public class FileTableView extends TableView<Entry> {
 
         TableColumn<Entry, String> nameCol = new TableColumn<>(lang.get("table_col_name"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setCellFactory(item -> new TableCell<Entry, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setGraphic(null);
+                } else {
+                    final HBox container = new HBox();
+
+                    if (item.endsWith(".flac")) {
+                        final Label tag = new Label();
+                        tag.setText("[FLAC] ");
+                        container.getChildren().add(tag);
+                        //setStyle("-fx-background-color: yellow");
+                    }
+                    container.getChildren().add(new Label(item));
+
+                    setGraphic(container);
+                }
+            }
+        });
 
         TableColumn<Entry, Integer> sizeCol = new TableColumn<>(lang.get("table_col_size"));
         sizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
@@ -48,6 +71,7 @@ public class FileTableView extends TableView<Entry> {
      *
      * @since 1.0.0
      */
+
     private void initSort() {
         this.sortPolicyProperty().set(param -> {
             Comparator<Entry> comparator = (top, bottom) ->
