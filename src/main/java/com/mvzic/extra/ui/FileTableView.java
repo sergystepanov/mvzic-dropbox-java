@@ -1,10 +1,16 @@
 package com.mvzic.extra.ui;
 
+import com.mvzic.extra.audio.Audio;
+import com.mvzic.extra.file.FileItem;
 import com.mvzic.extra.file.Path;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.property.Entry;
 import javafx.collections.FXCollections;
-import javafx.scene.control.*;
+import javafx.geometry.Pos;
+import javafx.scene.control.Label;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 
@@ -24,7 +30,8 @@ public class FileTableView extends TableView<Entry> {
 
         TableColumn<Entry, String> nameCol = new TableColumn<>(lang.get("table_col_name"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
-        nameCol.setCellFactory(item -> new TableCell<Entry, String>() {
+
+        nameCol.setCellFactory(items -> new TableCell<Entry, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
@@ -33,12 +40,16 @@ public class FileTableView extends TableView<Entry> {
                     setGraphic(null);
                 } else {
                     final HBox container = new HBox();
+                    container.setSpacing(5);
+                    container.setAlignment(Pos.BASELINE_LEFT);
 
-                    if (item.endsWith(".flac")) {
-                        final Label tag = new Label();
-                        tag.setText("[FLAC] ");
-                        container.getChildren().add(tag);
-                        //setStyle("-fx-background-color: yellow");
+                    if (Audio.isAllowedExtension(item)) {
+                        Entry e = (Entry) this.getTableRow().getItem();
+
+                        container.getChildren().add(new FileTag(FileItem.getExtension(item).toUpperCase()));
+                        if (null != e) {
+                            container.getChildren().add(new FileTag(String.valueOf(e.getSize())));
+                        }
                     }
                     container.getChildren().add(new Label(item));
 
@@ -60,7 +71,7 @@ public class FileTableView extends TableView<Entry> {
         getColumns().add(sizeCol);
 
         // Remove blue border
-        setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: 1em;");
+        setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: .5em;");
 
         initSort();
     }

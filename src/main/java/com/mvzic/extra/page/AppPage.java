@@ -5,12 +5,14 @@ import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.lang.UnicodeBundle;
 import javafx.application.Platform;
 import javafx.scene.layout.Pane;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default application page.
  *
  * @since 1.0.0
  */
+@Slf4j
 public abstract class AppPage extends Pane {
     private final WatchedEventBus eventBus;
     private final UnicodeBundle unicodeBundle;
@@ -38,7 +40,10 @@ public abstract class AppPage extends Pane {
     }
 
     void message(final String message) {
-        Platform.runLater(() -> getEventBus().post(new MessagedEvent(message)));
+        Platform.runLater(() -> {
+            getEventBus().post(new MessagedEvent(message));
+            log.info("[m] {}", message);
+        });
     }
 
     @Override

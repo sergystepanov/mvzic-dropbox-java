@@ -9,6 +9,7 @@ import com.mvzic.extra.audio.Audio;
 import com.mvzic.extra.audio.AudioMetadataReader;
 import com.mvzic.extra.audio.JaudiotagReader;
 import com.mvzic.extra.dropbox.DropboxHandler;
+import com.mvzic.extra.event.ExplorePathEvent;
 import com.mvzic.extra.event.FolderOpenedEvent;
 import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.event.menu.AppDropboxReloadEvent;
@@ -17,10 +18,17 @@ import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.property.DotDotDotEntry;
 import com.mvzic.extra.property.Entry;
 import com.mvzic.extra.ui.FileTableView;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableRow;
+import lombok.extern.slf4j.Slf4j;
 
+import java.awt.*;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,22 +37,21 @@ import java.util.List;
  *
  * @since 1.0.0
  */
+@Slf4j
 public final class FilePage extends AppPage {
     private final ObservableList<Entry> files;
     private final FileTableView table;
     private final DropboxHandler dropbox;
     private final AppSettings settings;
 
-    public FilePage(final WatchedEventBus eventBus, final UnicodeBundle lang, DropboxHandler dropbox,
-                    AppSettings settings) {
+    public FilePage(WatchedEventBus eventBus, UnicodeBundle lang, DropboxHandler dropbox, AppSettings settings) {
         super(eventBus, lang);
 
+        files = FXCollections.observableArrayList();
         this.dropbox = dropbox;
         this.settings = settings;
 
         table = new FileTableView(lang);
-        files = FXCollections.observableArrayList();
-
         getChildren().add(table);
 
         // Fit into parent container
@@ -67,6 +74,21 @@ public final class FilePage extends AppPage {
             }
         });
 
+        // Setup a menu
+        table.setRowFactory(param -> {
+            final TableRow<Entry> row = new TableRow<>();
+            final ContextMenu contextMenu = new ContextMenu();
+            final MenuItem explore = new MenuItem(lang.get("table_menu_explore"));
+            explore.setOnAction(event -> eventBus.post(new ExplorePathEvent(row.getItem().getPath())));
+            contextMenu.getItems().add(explore);
+
+            row.contextMenuProperty().bind(
+                    Bindings.when(row.emptyProperty()).then((ContextMenu) null).otherwise(contextMenu)
+            );
+
+            return row;
+        });
+
         listDropboxFolder(dropbox.getPath());
     }
 
@@ -79,6 +101,19 @@ public final class FilePage extends AppPage {
     void onFolderOpened(final FolderOpenedEvent event) {
         listDropboxFolder(event.getPath());
         message("[list] selected: " + event.getPath());
+    }
+
+    @Subscribe
+    void onPathExplored(final ExplorePathEvent event) {
+        if (!Desktop.isDesktopSupported()) {
+            return;
+        }
+
+        try {
+            Desktop.getDesktop().open(new File(settings.get(Settings.LOCAL_PATH) + event.getPath()));
+        } catch (IOException e) {
+            log.error("[list] an error with {}, {}", event.getPath(), e.getMessage());
+        }
     }
 
     @Override
