@@ -17,19 +17,12 @@ import javafx.scene.layout.HBox;
 import java.util.Comparator;
 
 public class FileTableView extends TableView<Entry> {
-    private static final double colWidth = 40.0;
-
     public FileTableView(final UnicodeBundle lang) {
         super();
 
-        TableColumn<Entry, String> folderCol = new TableColumn<>(lang.get("table_col_folder"));
-        folderCol.setMaxWidth(colWidth);
-        folderCol.setMinWidth(colWidth);
-        folderCol.setResizable(false);
-        folderCol.setCellValueFactory(new PropertyValueFactory<>("folder"));
-
         TableColumn<Entry, String> nameCol = new TableColumn<>(lang.get("table_col_name"));
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));
+        nameCol.setPrefWidth(100);
 
         nameCol.setCellFactory(items -> new TableCell<Entry, String>() {
             @Override
@@ -58,17 +51,8 @@ public class FileTableView extends TableView<Entry> {
             }
         });
 
-        TableColumn<Entry, Integer> sizeCol = new TableColumn<>(lang.get("table_col_size"));
-        sizeCol.setCellValueFactory(new PropertyValueFactory<>("size"));
-        sizeCol.setMaxWidth(colWidth);
-        sizeCol.setMinWidth(colWidth);
-        sizeCol.setResizable(false);
-
         setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
-
-        getColumns().add(folderCol);
         getColumns().add(nameCol);
-        getColumns().add(sizeCol);
 
         // Remove blue border
         setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent; -fx-padding: .5em;");

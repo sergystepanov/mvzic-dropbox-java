@@ -13,6 +13,7 @@ import com.mvzic.extra.event.ExplorePathEvent;
 import com.mvzic.extra.event.FolderOpenedEvent;
 import com.mvzic.extra.event.WatchedEventBus;
 import com.mvzic.extra.event.menu.AppDropboxReloadEvent;
+import com.mvzic.extra.event.ui.LoadingEvent;
 import com.mvzic.extra.file.Path;
 import com.mvzic.extra.lang.UnicodeBundle;
 import com.mvzic.extra.property.DotDotDotEntry;
@@ -29,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,7 +112,8 @@ public final class FilePage extends AppPage {
         }
 
         try {
-            Desktop.getDesktop().open(new File(settings.get(Settings.LOCAL_PATH) + event.getPath()));
+            java.nio.file.Path path = Paths.get(settings.get(Settings.LOCAL_PATH), event.getPath());
+            Desktop.getDesktop().open(path.toFile().isFile() ? path.getParent().toFile() : path.toFile());
         } catch (IOException e) {
             log.error("[list] an error with {}, {}", event.getPath(), e.getMessage());
         }
@@ -130,6 +133,7 @@ public final class FilePage extends AppPage {
     private void listDropboxFolder(final String path) {
         new Thread(() -> {
             try {
+                getEventBus().post(new LoadingEvent(true));
                 message("[dropbox] to open: " + path);
                 showFiles(dropbox.getFiles(path));
                 message("[dropbox] files have been loaded");
@@ -137,6 +141,8 @@ public final class FilePage extends AppPage {
                 message("[dropbox] was not a folder: " + path);
             } catch (DbxException e) {
                 message("[dropbox] an api exception, " + e.getMessage());
+            } finally {
+                getEventBus().post(new LoadingEvent(false));
             }
         }).start();
     }
@@ -181,7 +187,7 @@ public final class FilePage extends AppPage {
         for (final Entry entry : entries) {
             // a file
             if (!entry.folderProperty().get()) {
-                final File file = new File(settings.get(Settings.LOCAL_PATH) + entry.getPath());
+                final File file = Paths.get(settings.get(Settings.LOCAL_PATH), entry.getPath()).toFile();
                 if (file.exists() && Audio.isAllowedExtension(file.getName())) {
                     AudioMetadataReader reader = new JaudiotagReader();
                     entry.setSize((int) file.length() / 1024 / 1024);

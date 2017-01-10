@@ -27,6 +27,8 @@ import javafx.stage.Stage;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ResourceBundle;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Slf4j
 public class Main extends Application {
@@ -35,6 +37,7 @@ public class Main extends Application {
     private static final WatchedEventBus eventBus = new WatchedEventBus();
     private static final UnicodeBundle lang = new UnicodeBundle(ResourceBundle.getBundle("i18l.MyBundle"));
     private static final AppSettings appSettings = new AppSettings();
+    private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
     private BorderPane root;
     private Stage primaryStage;
     private final static long start = System.nanoTime();
@@ -42,10 +45,11 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        primaryStage.setOnCloseRequest(event -> scheduler.shutdown());
 
         dropbox = new DropboxHandler(appSettings.get(Settings.TOKEN));
 
-        final Bar bar = new Bar();
+        final Bar bar = new Bar(scheduler);
         root = new BorderPane(null, new AppMenuBar(eventBus, lang), null, bar, null);
 
         eventBus.register(this);
